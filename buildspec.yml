@@ -1,0 +1,20 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12  
+  pre_build:
+    commands:
+      - npm install
+      - apt-get update
+      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.0.2311-linux.zip
+      - unzip sonar-scanner-cli-4.6.0.2311-linux.zip
+      - export PATH=$PATH:./sonar-scanner-4.6.0.2311-linux/bin/
+      - java -version
+  build:
+    commands:
+      - sonar-scanner -Dsonar.login=5abb5785530c2b902dd6935a5d3dedab615cf874 -Dsonar.host.url=https://sonarcloud.io -Dsonar.projectKey=karadiakhil_car-rental -Dsonar.organization=karadiakhil
+      - sleep 5
+      - curl https://sonarcloud.io/api/qualitygates/project_status?projectKey=karadiakhil_car-rental >result.json
+      - cat result.json
+      - if [ $(jq -r '.projectStatus.status' result.json) = ERROR ] ; then $CODEBUILD_BUILD_SUCCEEDING -eq 0 ;fi
